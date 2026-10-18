@@ -379,6 +379,19 @@ html, body, [class*="css"] {
     color: #e2e8f0;
 }
 
+.incident-update-alert {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(16, 185, 129, 0.12);
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    border-radius: 6px;
+    padding: 0.45rem 0.75rem;
+    font-size: 0.8rem;
+    color: #86efac;
+    margin: 0.5rem 0 0.65rem 0;
+}
+
 .badge-tag {
     display: inline-flex;
     align-items: center;
@@ -582,6 +595,24 @@ def render_incident_card(incident: dict, authorized: bool, key_prefix: str = "ma
         urgency_bg = "background: rgba(148, 163, 184, 0.15); border: 1px solid #64748b; color: #cbd5e1;"
         urg_icon = render_icon("target", 13, "#94a3b8")
 
+    # Corroboration Confidence Level (SRS FR-04/FR-07)
+    conf_score = incident.get("confidence_score", 42)
+    if conf_score >= 85:
+        conf_pill = f'<span class="pill-metric" style="background:rgba(16,185,129,0.12); border-color:rgba(16,185,129,0.4); color:#34d399;">{render_icon("check-circle", 12, "#34d399")} Multi-Confirmed · {conf_score}% Confidence</span>'
+    elif conf_score >= 65:
+        conf_pill = f'<span class="pill-metric" style="background:rgba(56,189,248,0.12); border-color:rgba(56,189,248,0.4); color:#7dd3fc;">{render_icon("users", 12, "#38bdf8")} Corroborated · {conf_score}% Confidence</span>'
+    else:
+        conf_pill = f'<span class="pill-metric" style="background:rgba(148,163,184,0.1); border-color:rgba(148,163,184,0.3); color:#cbd5e1;">{render_icon("info", 12, "#94a3b8")} Single Witness · {conf_score}% Confidence</span>'
+
+    update_banner = ""
+    if incident.get("recent_update_note"):
+        update_banner = f"""
+        <div class="incident-update-alert">
+            {render_icon("radio", 13, "#34d399")}
+            <span><b>Progressive Corroboration:</b> {escape(incident['recent_update_note'])}</span>
+        </div>
+        """
+
     tags_block = f'<div style="margin-top:0.4rem;">{v_tags_html}{n_tags_html}</div>' if (v_tags_html or n_tags_html) else ''
 
     card_html = f"""
@@ -589,6 +620,7 @@ def render_incident_card(incident: dict, authorized: bool, key_prefix: str = "ma
         <div class="card-meta-row">
             <div style="display:flex; align-items:center; flex-wrap:wrap; gap:0.45rem;">
                 {get_status_badge_html(status)}
+                {conf_pill}
                 <span class="pill-metric">{render_icon("repeat", 13, "#94a3b8")} {merged_count} Merged Posts</span>
                 <span class="pill-metric">{render_icon("activity", 13, "#94a3b8")} {total_rt:,} Total RTs</span>
                 {victim_pill}
@@ -597,6 +629,7 @@ def render_incident_card(incident: dict, authorized: bool, key_prefix: str = "ma
                 <span class="pill-urgency" style="{urgency_bg}">{urg_icon} Urgency: {urgency}/100</span>
             </div>
         </div>
+        {update_banner}
         <div class="incident-headline">
             {render_icon("map-pin", 20, "#38bdf8")} <span>{escape(full_title)}</span>
         </div>
@@ -945,7 +978,8 @@ with tab_simulation:
             "Preset 1: Quiet Critical - Trapped Newborn & Oxygen Support (0 RT)",
             "Preset 2: Viral Repost Cascade - Downtown Building (3,500 RT)",
             "Preset 3: Missing Location - Screaming for Help (No Address)",
-            "Preset 4: Community Condolences & Broadcast News (Noise)"
+            "Preset 4: Community Condolences & Broadcast News (Noise)",
+            "Preset 5: Progressive Corroboration - Add Trapped Infant to Lantern Street (Dynamic Update)"
         ]
     )
 
@@ -964,14 +998,18 @@ with tab_simulation:
     elif "Preset 4" in preset_choice:
         default_text = "Sending heartfelt thoughts and prayers to everyone affected by the earthquake. Stay safe! Official news link attached."
         default_rt = 850
+    elif "Preset 5" in preset_choice:
+        default_text = "Update for Fictional Cedar Bay, Lantern Street 4: An infant is trapped under the rear stairs with high fever! Crane and pediatric rescue team urgently required! Tel: +1 (555) 789-0123"
+        default_rt = 8
 
     sim_c1, sim_c2 = st.columns([3, 2])
     with sim_c1:
         sim_text = st.text_area("Simulated Social Post Text", value=default_text, height=120)
     with sim_c2:
         sim_rt = st.slider("Retweet (RT) Engagement Volume", min_value=0, max_value=6000, value=default_rt, step=1)
-        sim_author = st.text_input("Handle / Author", value="@simulated_witness")
-        trigger_sim = st.button("Analyze Live Signal", type="primary", use_container_width=True)
+        sim_author = st.text_input("Handle / Author", value="@corroborating_witness")
+        trigger_sim = st.button("Preview Live Signal", type="secondary", use_container_width=True)
+        trigger_enrich = st.button("Inject & Stream-Enrich Active Queue", type="primary", use_container_width=True)
 
     if trigger_sim and sim_text.strip():
         new_row = pd.DataFrame([{
@@ -984,7 +1022,31 @@ with tab_simulation:
         }])
         sim_incidents, sim_eng, _ = analyze_posts(new_row)
         st.session_state.live_results = sim_incidents
-        st.success(f"Live post processed via {sim_eng}")
+        st.success(f"Live post previewed via {sim_eng}")
+
+    if trigger_enrich and sim_text.strip():
+        new_post_dict = {
+            "post_id": f"LIVE_{pd.Timestamp.now('UTC').strftime('%H%M%S')}",
+            "username": sim_author,
+            "created_at": pd.Timestamp.now("UTC").strftime("%Y-%m-%d %H:%M:%SZ"),
+            "raw_text": sim_text.strip(),
+            "retweet_count": sim_rt,
+            "incident_hint": ""
+        }
+        from crisis_triage import enrich_or_append_post
+        action, target_inc, summary = enrich_or_append_post(
+            st.session_state.incidents,
+            new_post_dict,
+            engine_choice=engine_choice
+        )
+        save_incidents(st.session_state.incidents, st.session_state.source_name)
+        if action == "UPDATED":
+            st.success(f"Incident {target_inc['incident_id']} Corroborated & Enriched! {summary}")
+            st.toast(f"Corroborated {target_inc['incident_id']}: Confidence elevated!", icon=":material/sync:")
+        else:
+            st.info(f"New Master Incident {target_inc['incident_id']} created! {summary}")
+            st.toast(f"New Incident {target_inc['incident_id']} Registered", icon=":material/add_alert:")
+        st.rerun()
 
     if st.session_state.live_results:
         st.markdown("##### Real-Time Analysis Result:")

@@ -122,8 +122,8 @@ def generate_pdf_report(incidents: list[dict], metrics: dict, engine_name: str, 
     pdf.cell(18, 6, "Case ID", 1, 0, "C", True)
     pdf.cell(30, 6, "Priority Status", 1, 0, "C", True)
     pdf.cell(16, 6, "Urgency", 1, 0, "C", True)
-    pdf.cell(16, 6, "Posts / RT", 1, 0, "C", True)
-    pdf.cell(50, 6, "Location / Coordinates", 1, 0, "L", True)
+    pdf.cell(18, 6, "Posts/Conf", 1, 0, "C", True)
+    pdf.cell(48, 6, "Location / Coordinates", 1, 0, "L", True)
     pdf.cell(60, 6, "AI Assessment & Vulnerabilities", 1, 1, "L", True)
 
     pdf.set_font("Helvetica", "", 7.5)
@@ -136,8 +136,9 @@ def generate_pdf_report(incidents: list[dict], metrics: dict, engine_name: str, 
             continue
 
         urgency = inc.get("urgency_score", 10)
+        conf = inc.get("confidence_score", 42)
         loc = clean_text(f"{inc.get('city') or ''} {inc.get('normalized_address') or 'Location Vague'}"[:36])
-        vol = f"{inc.get('merged_post_count', 1)}P / {inc.get('total_retweet_volume', 0)}RT"
+        vol = f"{inc.get('merged_post_count', 1)}P · {conf}%"
         tags = ", ".join(inc.get("vulnerability_tags", []))
         reasoning = clean_text(f"{inc.get('ai_reasoning', '')[:55]} | {tags[:20]}")
 
@@ -145,8 +146,8 @@ def generate_pdf_report(incidents: list[dict], metrics: dict, engine_name: str, 
         pdf.cell(18, 6, clean_text(inc.get("incident_id", "CASE-000")), 1, 0, "C")
         pdf.cell(30, 6, clean_text(status[:18]), 1, 0, "C")
         pdf.cell(16, 6, f"{urgency}/100", 1, 0, "C")
-        pdf.cell(16, 6, vol, 1, 0, "C")
-        pdf.cell(50, 6, loc, 1, 0, "L")
+        pdf.cell(18, 6, vol, 1, 0, "C")
+        pdf.cell(48, 6, loc, 1, 0, "L")
         pdf.cell(60, 6, reasoning[:42], 1, 1, "L")
         row_count += 1
 
@@ -159,7 +160,7 @@ def generate_pdf_report(incidents: list[dict], metrics: dict, engine_name: str, 
     pdf.set_text_color(71, 85, 105)
     compliance_notes = (
         "- FR-01 to FR-07 Fully Satisfied: Ingestion, Noise Filtering, NER Entity Parsing, Semantic Deduplication, "
-        "Visibility Balancing, Urgency Scoring, and Human-in-the-Loop Verification Desk operational.\n"
+        "Visibility Balancing, Progressive Witness Corroboration, Urgency Scoring, and Human-in-the-Loop Verification Desk operational.\n"
         "- NFR-02 Zero Data Loss: All original raw tweets retained in local SQLite repository crisis_db.sqlite.\n"
         "- NFR-03 PII Protection: Phone numbers masked by default; authorized view audit logged."
     )

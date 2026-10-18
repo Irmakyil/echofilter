@@ -68,9 +68,16 @@ def ensure_schema() -> None:
             urgency_score INTEGER NOT NULL,
             ai_reasoning TEXT NOT NULL,
             needs_review INTEGER NOT NULL,
+            confidence_score INTEGER DEFAULT 40,
+            corroboration_level TEXT DEFAULT 'UNVERIFIED_SINGLE_SOURCE',
             operator_status TEXT NOT NULL DEFAULT 'PENDING_DISPATCH',
             updated_at TEXT NOT NULL
         )""")
+        try:
+            db.execute("ALTER TABLE unique_incidents ADD COLUMN confidence_score INTEGER DEFAULT 40")
+            db.execute("ALTER TABLE unique_incidents ADD COLUMN corroboration_level TEXT DEFAULT 'UNVERIFIED_SINGLE_SOURCE'")
+        except Exception:
+            pass
 
 
 def load_posts(file_bytes: bytes, filename: str) -> pd.DataFrame:
@@ -353,6 +360,32 @@ def _openai_analyze(rows: list[dict], api_key: str) -> list[PostFinding]:
     return [by_id.get(str(row["post_id"]), _local_finding(row)) for row in rows]
 
 
+def compute_corroboration(
+    merged_count: int,
+    has_specific_address: bool,
+    vulnerabilities: list[str],
+    needs: list[str]
+) -> tuple[int, str]:
+    """Calculate progressive verification confidence based on independent witness corroboration (SRS FR-04/FR-07)."""
+    if merged_count <= 1:
+        base = 42
+        label = "UNVERIFIED_SINGLE_SOURCE"
+    elif merged_count == 2:
+        base = 76
+        label = "CROSS_CORROBORATED"
+    else:
+        # 3 or more independent witnesses
+        base = min(98, 86 + (merged_count - 2) * 3)
+        label = "MULTI_CONFIRMED"
+
+    if has_specific_address:
+        base = min(99, base + 8)
+    if vulnerabilities or needs:
+        base = min(99, base + 4)
+
+    return int(base), label
+
+
 def analyze_posts(
     frame: pd.DataFrame,
     engine_choice: str = "Local NLP Rule Engine (Zero-Latency)",
@@ -446,6 +479,13 @@ def analyze_posts(
             incident_id = f"NOISE-{noise_counter:03d}"
             noise_counter += 1
 
+        conf_score, conf_level = compute_corroboration(
+            merged_count=merged_count,
+            has_specific_address=bool(address),
+            vulnerabilities=vulnerability_tags,
+            needs=need_tags
+        ) if is_emergency else (10, "NON_EMERGENCY_NOISE")
+
         incidents.append({
             "incident_id": incident_id,
             "incident_key": key,
@@ -459,10 +499,14 @@ def analyze_posts(
             "total_retweet_volume": total_rt,
             "visibility_status": status,
             "urgency_score": max_score if is_emergency else 1,
+            "confidence_score": conf_score,
+            "corroboration_level": conf_level,
             "ai_reasoning": primary_finding.reasoning,
             "needs_review": needs_review,
             "is_emergency_call": is_emergency,
             "operator_status": "PENDING_DISPATCH",
+            "recent_update_note": "",
+            "just_updated": False,
             "posts": [dict(r, _finding=f.model_dump()) for r, f in members]
         })
 
@@ -521,11 +565,172 @@ def save_incidents(incidents: list[dict], source: str) -> None:
             db.execute("""INSERT OR REPLACE INTO unique_incidents
                 (incident_id, city, district, normalized_address, victim_count_est, vulnerability_tags, need_tags,
                  merged_post_count, total_retweet_volume, visibility_status, urgency_score, ai_reasoning,
-                 needs_review, operator_status, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                 needs_review, confidence_score, corroboration_level, operator_status, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (stable_id, inc.get("city"), inc.get("district"), inc.get("normalized_address"),
                  inc.get("victim_count_est"), json.dumps(inc.get("vulnerability_tags", []), ensure_ascii=False),
                  json.dumps(inc.get("need_tags", []), ensure_ascii=False), inc.get("merged_post_count", 1),
                  inc.get("total_retweet_volume", 0), inc.get("visibility_status", "ACTIONABLE"),
                  inc.get("urgency_score", 1), inc.get("ai_reasoning", ""), int(inc.get("needs_review", False)),
+                 int(inc.get("confidence_score", 42)), str(inc.get("corroboration_level", "UNVERIFIED_SINGLE_SOURCE")),
                  inc.get("operator_status", "PENDING_DISPATCH"), now))
+
+
+def enrich_or_append_post(
+    incidents: list[dict],
+    new_post: dict,
+    engine_choice: str = "Local NLP Rule Engine (Offline)",
+    api_key: Optional[str] = None
+) -> tuple[str, dict, str]:
+    """
+    Progressive Incident Verification & Dynamic Enrichment (SRS FR-04 / FR-07).
+    Matches new incoming social signals against active incidents:
+    - If match found: enriches location specifics, merges newly discovered victims/vulnerabilities,
+      elevates verification confidence score, and resolves incomplete address status if provided.
+    - If no match found: establishes a new master incident.
+    """
+    finding = _local_finding(new_post)
+    if "OpenAI" in engine_choice and api_key:
+        try:
+            findings = _openai_analyze([new_post], api_key)
+            if findings:
+                finding = findings[0]
+        except Exception:
+            pass
+    elif "Gemini" in engine_choice and api_key:
+        try:
+            findings = _gemini_analyze([new_post], api_key)
+            if findings:
+                finding = findings[0]
+        except Exception:
+            pass
+
+    is_emergency = finding.is_emergency_call
+    post_rt = int(new_post.get("retweet_count", 0)) if pd.notna(new_post.get("retweet_count")) else 0
+    new_author = str(new_post.get("username", "anonymous"))
+
+    # Matching algorithm across active master incidents
+    matched_incident = None
+    if is_emergency:
+        for inc in incidents:
+            if not inc.get("is_emergency_call"):
+                continue
+            # Match 1: Explicit incident hint
+            if new_post.get("incident_hint") and inc.get("incident_key") == new_post.get("incident_hint"):
+                matched_incident = inc
+                break
+            # Match 2: Exact address / incident key
+            if inc.get("incident_key") == finding.incident_key:
+                matched_incident = inc
+                break
+            # Match 3: Normalized street & town overlap
+            if finding.normalized_address and inc.get("normalized_address"):
+                addr_a = inc["normalized_address"].casefold().strip()
+                addr_b = finding.normalized_address.casefold().strip()
+                if (addr_a in addr_b or addr_b in addr_a) and (inc.get("city") == finding.city or not inc.get("city") or not finding.city):
+                    matched_incident = inc
+                    break
+
+    if matched_incident:
+        # PROGRESSIVE ENRICHMENT OF EXISTING INCIDENT
+        enrichment_notes = []
+        matched_incident["posts"].append(dict(new_post, _finding=finding.model_dump()))
+        matched_incident["merged_post_count"] += 1
+        matched_incident["total_retweet_volume"] += post_rt
+
+        # 1. Enrich victim counts (higher or newly specified number)
+        if finding.victim_count_est is not None:
+            old_v = matched_incident.get("victim_count_est")
+            if old_v is None or finding.victim_count_est > old_v:
+                matched_incident["victim_count_est"] = finding.victim_count_est
+                enrichment_notes.append(f"Victims updated to ~{finding.victim_count_est}")
+
+        # 2. Add newly discovered vulnerabilities
+        existing_vulns = set(matched_incident.get("vulnerability_tags", []))
+        new_vulns = set(finding.vulnerability_tags) - existing_vulns
+        if new_vulns:
+            matched_incident["vulnerability_tags"] = sorted(existing_vulns | new_vulns)
+            enrichment_notes.append(f"New vulnerabilities: {', '.join(new_vulns)}")
+
+        # 3. Add newly discovered logistics needs
+        existing_needs = set(matched_incident.get("need_tags", []))
+        new_needs = set(finding.need_tags) - existing_needs
+        if new_needs:
+            matched_incident["need_tags"] = sorted(existing_needs | new_needs)
+            enrichment_notes.append(f"New needs: {', '.join(new_needs)}")
+
+        # 4. Resolve incomplete address if missing details provided
+        if matched_incident.get("needs_review") and finding.normalized_address:
+            matched_incident["normalized_address"] = finding.normalized_address
+            if finding.city:
+                matched_incident["city"] = finding.city
+            if finding.district:
+                matched_incident["district"] = finding.district
+            matched_incident["needs_review"] = False
+            matched_incident["visibility_status"] = "SHADOWED_CRITICAL" if matched_incident["total_retweet_volume"] < 15 else "ACTIONABLE"
+            enrichment_notes.append("Incomplete address resolved by new witness report (promoted to priority queue)")
+
+        # 5. Elevate Corroboration Confidence
+        old_conf = matched_incident.get("confidence_score", 42)
+        new_conf, new_level = compute_corroboration(
+            matched_incident["merged_post_count"],
+            bool(matched_incident.get("normalized_address")),
+            matched_incident.get("vulnerability_tags", []),
+            matched_incident.get("need_tags", [])
+        )
+        matched_incident["confidence_score"] = new_conf
+        matched_incident["corroboration_level"] = new_level
+        matched_incident["urgency_score"] = max(matched_incident.get("urgency_score", 0), finding.urgency_score)
+
+        details_str = "; ".join(enrichment_notes) if enrichment_notes else "Independent witness corroborated existing report details."
+        update_summary = f"Corroborated by @{new_author} (+{post_rt} RTs). {details_str} Verification confidence: {old_conf}% -> {new_conf}%."
+        matched_incident["recent_update_note"] = update_summary
+        matched_incident["just_updated"] = True
+        return "UPDATED", matched_incident, update_summary
+
+    else:
+        # INITIAL REGISTRATION OF NEW INCIDENT
+        emergency_cases = sum(1 for i in incidents if i.get("is_emergency_call"))
+        noise_cases = sum(1 for i in incidents if not i.get("is_emergency_call"))
+        inc_id = f"CASE-{emergency_cases + 1:03d}" if is_emergency else f"NOISE-{noise_cases + 1:03d}"
+        conf_score, conf_level = compute_corroboration(
+            1, bool(finding.normalized_address), finding.vulnerability_tags, finding.need_tags
+        ) if is_emergency else (10, "NON_EMERGENCY_NOISE")
+
+        status = "NOISE"
+        if is_emergency:
+            if finding.needs_review:
+                status = "INCOMPLETE_INFO"
+            elif post_rt < 15 and finding.urgency_score >= 80:
+                status = "SHADOWED_CRITICAL"
+            elif post_rt >= 15 and finding.urgency_score >= 80:
+                status = "VIRAL_CRITICAL"
+            else:
+                status = "ACTIONABLE"
+
+        new_incident = {
+            "incident_id": inc_id,
+            "incident_key": finding.incident_key,
+            "city": finding.city,
+            "district": finding.district,
+            "normalized_address": finding.normalized_address,
+            "victim_count_est": finding.victim_count_est,
+            "vulnerability_tags": finding.vulnerability_tags,
+            "need_tags": finding.need_tags,
+            "merged_post_count": 1,
+            "total_retweet_volume": post_rt,
+            "visibility_status": status,
+            "urgency_score": finding.urgency_score if is_emergency else 1,
+            "ai_reasoning": finding.reasoning,
+            "needs_review": finding.needs_review,
+            "is_emergency_call": is_emergency,
+            "confidence_score": conf_score,
+            "corroboration_level": conf_level,
+            "operator_status": "PENDING_DISPATCH",
+            "recent_update_note": "Initial report registered in dispatch stream.",
+            "just_updated": True,
+            "posts": [dict(new_post, _finding=finding.model_dump())]
+        }
+        incidents.insert(0, new_incident)
+        summary = f"New master incident {inc_id} registered with {conf_score}% initial confidence."
+        return "CREATED", new_incident, summary
