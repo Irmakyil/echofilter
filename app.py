@@ -603,7 +603,7 @@ def render_incident_card(incident: dict, authorized: bool, key_prefix: str = "ma
         <div class="incident-ai-box">
             <div class="incident-ai-hdr">
                 {render_icon("sparkles", 13, "#38bdf8")}
-                <span>Sovereign AI Triage Assessment</span>
+                <span>Triage Assessment</span>
             </div>
             <div class="incident-ai-text">{reasoning}</div>
         </div>
@@ -612,7 +612,7 @@ def render_incident_card(incident: dict, authorized: bool, key_prefix: str = "ma
     """
     render_html_block(card_html)
 
-    # NFR-02: Zero-Data-Loss Accordion with all retained raw evidence
+    # Source-post evidence remains linked to each incident for review.
     with st.expander(f"Inspect Retained Evidence & Source Posts ({merged_count} records · {incident['incident_id']})"):
         for post in incident.get("posts", []):
             raw_text = post["raw_text"]
@@ -675,7 +675,7 @@ with st.sidebar:
         </div>
         <div style="display:flex; align-items:center; gap:0.45rem; font-size:0.73rem; color:#94a3b8; padding-top:0.35rem; border-top:1px solid rgba(255,255,255,0.06);">
             <span style="display:inline-block; width:7px; height:7px; background:#10b981; border-radius:50%; box-shadow:0 0 6px #10b981;"></span>
-            <span>Sovereign Offline AI Active</span>
+            <span>Local Rules Default · Provider Choice Available</span>
         </div>
     </div>
     """)
@@ -715,35 +715,45 @@ with st.sidebar:
             except Exception as e:
                 st.error(f"Ingestion failed: {e}")
 
-    # 3. Ethical Sovereign AI Architecture (NO manual API key requirement!)
+    # 3. Analysis engine and external-provider disclosure
     render_html_block(f"""
     <div class="sidebar-hdr">{render_icon("cpu", 14, "#38bdf8")} 2. Ethical Disaster AI Architecture</div>
     """)
 
     engine_choice = st.selectbox(
-        "AI Deployment Architecture",
+        "Analysis engine",
         [
-            "Sovereign Humanitarian Engine (Air-Gapped · Zero-Data-Leak)",
-            "Local Edge LLM (Llama-3 DisasterGuard · On-Premises)",
-            "Government Secure Gateway (Backend Server Managed)"
+            "Local NLP Rule Engine (Offline)",
+            "Google Gemini 2.5 Flash (External API)",
+            "OpenAI gpt-4o-mini (External API)",
         ],
         index=0,
-        label_visibility="collapsed",
-        help="In disaster response, volunteer or operator entry of personal commercial API keys violates data sovereignty and privacy. EchoFilter AI uses air-gapped local models by default."
+        help="The local rule engine works offline. Gemini and OpenAI use their provider APIs and require the matching API key in the server environment."
     )
+    external_model = "External API" in engine_choice
+    external_consent = False
+    if external_model:
+        st.warning(
+            "Selected message text (with detected phone numbers masked) will be sent to the selected provider for analysis. "
+            "Review the provider's data terms and use synthetic or otherwise approved data for demos."
+        )
+        external_consent = st.checkbox(
+            "I understand and approve sending the selected messages to this external AI provider.",
+            key="external_ai_data_consent",
+        )
 
     # Ethical AI Guardrails Status Box
     render_html_block(f"""
     <div class="ethical-guard-box">
-        <div class="ethical-guard-item">{render_icon("shield", 13, "#86efac")} Zero-Data-Leakage Sovereign Local Mode</div>
-        <div class="ethical-guard-item">{render_icon("lock", 13, "#86efac")} Anti-Popularity Bias Inverse Filter ON</div>
-        <div class="ethical-guard-item">{render_icon("check-circle", 13, "#86efac")} UN OCHA & KVKK Ethical AI Certified</div>
+        <div class="ethical-guard-item">{render_icon("shield", 13, "#86efac")} Local-First Analysis Available</div>
+        <div class="ethical-guard-item">{render_icon("lock", 13, "#86efac")} Low-Visibility Priority Rule Enabled</div>
+        <div class="ethical-guard-item">{render_icon("check-circle", 13, "#86efac")} Human Review Required</div>
     </div>
     """)
 
     # 4. Zero-Trust Privacy & PII
     render_html_block(f"""
-    <div class="sidebar-hdr">{render_icon("lock", 14, "#38bdf8")} 3. Zero-Trust PII Redaction</div>
+    <div class="sidebar-hdr">{render_icon("lock", 14, "#38bdf8")} 3. Phone Number Masking</div>
     """)
     authorized = st.toggle(
         "Authorized Command View",
@@ -754,6 +764,9 @@ with st.sidebar:
     # 5. Pipeline Trigger
     st.markdown("<div style='margin-top:0.75rem;'></div>", unsafe_allow_html=True)
     if st.button("Execute Stream Triage Pipeline", type="primary", use_container_width=True):
+        if external_model and not external_consent:
+            st.error("Confirm external data sharing before running this provider.")
+            st.stop()
         try:
             with st.spinner("Extracting entities, clustering duplicate incidents, and computing visibility weights..."):
                 incidents, engine, metrics = analyze_posts(
@@ -795,7 +808,7 @@ render_html_block(f"""
     <div class="hud-top-meta">
         <span class="hud-chip">{render_icon("shield", 12, "#38bdf8")} Generative AI for SDGs Hackathon · Group 3</span>
         <span class="hud-chip" style="background:rgba(16,185,129,0.12); border-color:rgba(16,185,129,0.3); color:#34d399;">
-            {render_icon("radio", 12, "#34d399")} Sovereign Air-Gapped Engine Active
+            {render_icon("radio", 12, "#34d399")} Local-First Triage · Human Review
         </span>
     </div>
     <div class="hud-title">
@@ -980,7 +993,7 @@ with tab_simulation:
 
 # 4. TAB: Filtered Noise Vault
 with tab_noise:
-    st.markdown("#### Zero-Loss Noise Vault")
+    st.markdown("#### Filtered Noise Archive")
     st.caption("Non-actionable posts (thoughts, prayers, news broadcasts, traffic updates) are archived here without cluttering first-responder queues.")
 
     if not noise_list:
@@ -1079,7 +1092,7 @@ with tab_srs:
     with r_c1:
         st.markdown("##### Core Benchmark Metrics (SRS 1.3)")
         st.metric("1. Deduplication Efficiency Rate", f"{dedup_rate}%", help="Percentage of redundant reports compressed into single master incidents")
-        st.metric("2. Blind-Spot Recall Accuracy", f"{metrics.get('blind_spot_recall', 100.0)}%", help="Recall rate of high-urgency reports with <15 RTs surfaced to top priority")
+        st.metric("2. Low-Visibility Critical Cases", metrics.get("shadowed_count", 0), help="Count flagged by the configured low-repost and urgency rule; this is not a recall measurement")
         st.metric("3. Total Raw Posts Processed", f"{raw_total} Posts")
         st.metric("4. Clustered Unique Incidents", f"{raw_total} -> {unique_cases} Master Cases")
 
@@ -1094,8 +1107,8 @@ with tab_srs:
     st.divider()
     st.markdown("##### Ethical AI & Humanitarian Data Governance (SRS Section 7)")
     st.markdown("""
-    - **Air-Gapped Sovereign Inference:** No disaster victim data or distress calls are transmitted to third-party commercial APIs. All NER and clustering algorithms run locally on the crisis command server.
-    - **Anti-Popularity Bias Filter (FR-05):** Traditional social feeds prioritize viral influencers. EchoFilter AI inverts engagement weighting, elevating zero-RT reports with medical/entrapment distress calls.
-    - **Zero-Loss Audit Trail (NFR-02):** Merged duplicate posts are never deleted; each retains its timestamp, author, and raw message in the SQLite archive.
-    - **Zero-Trust PII Masking (NFR-03):** Automated regex sanitizes victim phone numbers (`+1 (555) ***-**78`) to prevent data leakage during multi-agency screen sharing.
+    - **Analysis modes:** The local deterministic rule engine works offline. Optional Gemini and OpenAI modes send selected, phone-masked messages to the configured provider after operator consent.
+    - **Low-visibility priority rule:** High-urgency cases with low repost volume are elevated by a configured rule. Its thresholds and performance require validation on labeled data.
+    - **Source traceability:** Raw posts are retained in the local SQLite database. Restrict database access and define retention controls before real-world use.
+    - **PII masking limit:** Phone-like strings are masked by pattern matching, which can miss personal data. Human review is required before any action.
     """)

@@ -20,7 +20,7 @@ Give crisis-desk operators a single English-language screen for reviewing disast
 - Classify noise, extract only stated details, group likely duplicates, and score urgency 1–100 with a concise reason.
 - Low-retweet critical incidents are visibly flagged; incomplete/ambiguous reports remain in a human-review queue.
 - Preserve raw messages in SQLite and expose them under their incident; mask phone numbers by default.
-- Optional Gemini processing uses one structured batch request, temperature 0, and a bounded batch size. Local heuristics work without credentials.
+- Optional Gemini or OpenAI processing uses one structured batch request, temperature 0, and a bounded batch size. Local heuristics work without credentials.
 - All user-facing copy and project documentation are in English.
 - Include a recent, relevant, privacy-preserving benchmark derivative with clear attribution and limitations.
 
@@ -29,5 +29,5 @@ Give crisis-desk operators a single English-language screen for reviewing disast
 - The 2023 DepremKit benchmark derivative includes labels and entity counts only; tweet IDs and text are intentionally omitted, so it supports distribution/schema review, not NLP scoring.
 - The DepremKit tab displays label and entity-count distributions and offers the anonymized derivative for download.
 - Synthetic demo records use fictional locations and identifiers. Never use this prototype as an autonomous dispatch or verification system.
-- Gemini requests send selected message text to Google. The UI must disclose this before analysis.
+- External Gemini/OpenAI requests send selected, phone-masked message text to the provider. The UI must disclose this and require operator consent before analysis.
 - Human review is required before any real-world action.

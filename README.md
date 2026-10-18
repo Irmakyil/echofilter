@@ -3,7 +3,7 @@
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.40%2B-FF4B4B.svg)](https://streamlit.io/)
 [![SDGs](https://img.shields.io/badge/SDG-11%20%7C%2013%20%7C%2016-green.svg)](https://sdgs.un.org/)
-[![Architecture](https://img.shields.io/badge/Architecture-Sovereign%20Air--Gapped-38bdf8.svg)](#ethical-ai--humanitarian-data-governance)
+[![Architecture](https://img.shields.io/badge/Architecture-Local--First%20%7C%20Optional%20GenAI-38bdf8.svg)](#ethical-ai--humanitarian-data-governance)
 [![Design](https://img.shields.io/badge/Design-Cybernetic%20HUD%20(Vector%20Icons)-purple.svg)](#command-center-features)
 
 > **The Core Compass Directive:**  
@@ -35,10 +35,10 @@ During major disasters (earthquakes, flash floods, hurricanes), social media pla
 
 | Metric | Target | EchoFilter AI Benchmark | Description |
 | :--- | :--- | :--- | :--- |
-| **Deduplication Efficiency** | 40% – 80% | **43.3% – 75.0%** | Redundant social reposts compressed into singular unique Master Incidents. |
-| **Blind-Spot Recall Accuracy** | >95% | **100.0%** | Zero-RT or low-visibility distress calls (<15 RTs) surfaced as `SHADOWED_CRITICAL`. |
-| **Ingestion Throughput** | <2s / 100 posts | **~120ms / batch** | Deterministic local rule engine processing with zero external API latency. |
-| **Data Retention** | 100% | **100% (Zero Data Loss)** | Every raw post retained with full provenance in the SQLite database. |
+| **Deduplication Efficiency** | Evaluation target | Demo output varies by input | Must be measured against a labeled test set before presenting as validated performance. |
+| **Low-visibility prioritization** | Evaluation target | Rule-based flag at <15 reposts and urgency >=80 | This is a configured rule, not a measured recall result. |
+| **Ingestion throughput** | Evaluation target | Measure in the target deployment | Timing depends on hardware, batch size, selected engine, and network. |
+| **Data retention** | Preserve source records | SQLite persistence is implemented | Verify retention and recovery behavior before operational use. |
 
 ---
 
@@ -53,7 +53,7 @@ During major disasters (earthquakes, flash floods, hurricanes), social media pla
 - **FR-07 (Human-in-the-Loop):** Dedicated Verification Desk for ambiguous or coordinate-deficient distress calls.
 - **NFR-02 (Zero-Data-Loss Reliability):** SQLite database (`crisis_db.sqlite`) retaining every raw source message in expandable evidence blocks.
 - **NFR-03 (Zero-Trust PII Masking):** Automated regex sanitization of victim phone numbers (`+1 (555) ***-**78`) with authorized command unmasking.
-- **NFR-04 (Ethical Sovereign AI):** Air-gapped local NLP engine (0ms latency, zero third-party commercial data leakage).
+- **NFR-04 (Privacy-aware modes):** Offline deterministic rules plus optional external Gemini/OpenAI APIs with operator disclosure and consent.
 
 ---
 
@@ -104,10 +104,11 @@ echofilter-ai/
 
 ## Ethical AI & Humanitarian Data Governance
 
-- **Air-Gapped Sovereign Inference:** No disaster victim data or distress messages are transmitted to third-party commercial APIs. All NER parsing, clustering, and visibility balancing run locally on the crisis command server.
+- **Multiple analysis modes:** The deterministic local rule engine works offline. Optional Gemini and OpenAI analysis send selected message text (with detected phone numbers masked) to the configured provider. The app asks for operator consent before these calls.
 - **Anti-Popularity Bias Filter (FR-05):** Inverts social media engagement metrics to prevent algorithmically induced neglect of quiet emergency calls.
-- **Zero-Loss Audit Trail (NFR-02):** Merged duplicate posts are never deleted; every post retains its author, timestamp, and message body in the local SQLite archive.
-- **Zero-Trust PII Redaction (NFR-03):** Automated regex sanitizes victim phone numbers (`+1 (555) ***-**78`) by default, protecting citizens during multi-agency screen sharing.
+- **Local audit trail:** Raw posts are retained in SQLite for traceability. Restrict database access and define retention controls before handling real incident data.
+- **PII masking:** Phone-like strings are masked in the display and in external-model payloads. Pattern matching can miss personal data; the prototype is not a guarantee of anonymization.
+- **Human review:** Triage scores and extracted details are decision support only. Operators must verify reports before any dispatch action.
 
 ---
 
