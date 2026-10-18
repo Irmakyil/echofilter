@@ -1,0 +1,61 @@
+post_id,username,created_at,raw_text,retweet_count,incident_hint
+SYN-D1-01,demo-witness-1,2026-10-18T10:00:00Z,"Urgent help needed at Fictional Cedar Bay, Lantern Street 4: Two adults and one infant are trapped after a fictional building collapse.",18,demo_dup_01
+SYN-D1-02,demo-witness-2,2026-10-18T10:07:00Z,"Please send rescue to Fictional Cedar Bay, Lantern Street 4. Two adults and one infant are trapped after a fictional building collapse.",31,demo_dup_01
+SYN-D1-03,demo-witness-3,2026-10-18T10:14:00Z,"Checking again for Fictional Cedar Bay, Lantern Street 4 - Two adults and one infant are trapped after a fictional building collapse.",44,demo_dup_01
+SYN-D1-04,demo-witness-4,2026-10-18T10:21:00Z,"Help request near Fictional Cedar Bay, Lantern Street 4; Two adults and one infant are trapped after a fictional building collapse.",57,demo_dup_01
+SYN-D1-05,demo-witness-5,2026-10-18T11:28:00Z,"Can responders reach Fictional Cedar Bay, Lantern Street 4? Two adults and one infant are trapped after a fictional building collapse.",70,demo_dup_01
+SYN-D1-06,demo-witness-6,2026-10-18T11:35:00Z,"A neighbor reports Fictional Cedar Bay, Lantern Street 4: Two adults and one infant are trapped after a fictional building collapse.",83,demo_dup_01
+SYN-D1-07,demo-witness-1,2026-10-18T11:42:00Z,"Reshare: Fictional Cedar Bay, Lantern Street 4, Two adults and one infant are trapped after a fictional building collapse.",96,demo_dup_01
+SYN-D1-08,demo-witness-2,2026-10-18T11:49:00Z,"We still need help at Fictional Cedar Bay, Lantern Street 4. Two adults and one infant are trapped after a fictional building collapse.",109,demo_dup_01
+SYN-D1-09,demo-witness-3,2026-10-18T12:56:00Z,"Emergency at Fictional Cedar Bay, Lantern Street 4! Two adults and one infant are trapped after a fictional building collapse.",25,demo_dup_01
+SYN-D1-10,demo-witness-4,2026-10-18T12:03:00Z,"Please check the report for Fictional Cedar Bay, Lantern Street 4: Two adults and one infant are trapped after a fictional building collapse.",38,demo_dup_01
+SYN-D2-01,demo-witness-1,2026-10-18T10:00:00Z,"Urgent help needed at Fictional Pine Ridge, Maple Avenue 18: An older adult needs urgent insulin after a fictional flood.",18,demo_dup_02
+SYN-D2-02,demo-witness-2,2026-10-18T10:07:00Z,"Please send rescue to Fictional Pine Ridge, Maple Avenue 18. An older adult needs urgent insulin after a fictional flood.",31,demo_dup_02
+SYN-D2-03,demo-witness-3,2026-10-18T10:14:00Z,"Checking again for Fictional Pine Ridge, Maple Avenue 18 - An older adult needs urgent insulin after a fictional flood.",44,demo_dup_02
+SYN-D2-04,demo-witness-4,2026-10-18T10:21:00Z,"Help request near Fictional Pine Ridge, Maple Avenue 18; An older adult needs urgent insulin after a fictional flood.",57,demo_dup_02
+SYN-D2-05,demo-witness-5,2026-10-18T11:28:00Z,"Can responders reach Fictional Pine Ridge, Maple Avenue 18? An older adult needs urgent insulin after a fictional flood.",70,demo_dup_02
+SYN-D2-06,demo-witness-6,2026-10-18T11:35:00Z,"A neighbor reports Fictional Pine Ridge, Maple Avenue 18: An older adult needs urgent insulin after a fictional flood.",83,demo_dup_02
+SYN-D2-07,demo-witness-1,2026-10-18T11:42:00Z,"Reshare: Fictional Pine Ridge, Maple Avenue 18, An older adult needs urgent insulin after a fictional flood.",96,demo_dup_02
+SYN-D2-08,demo-witness-2,2026-10-18T11:49:00Z,"We still need help at Fictional Pine Ridge, Maple Avenue 18. An older adult needs urgent insulin after a fictional flood.",109,demo_dup_02
+SYN-D3-01,demo-witness-1,2026-10-18T10:00:00Z,"Urgent help needed at Fictional Harborview, Beacon Road 7: Residents need rescue from a fictional collapsed building.",18,demo_dup_03
+SYN-D3-02,demo-witness-2,2026-10-18T10:07:00Z,"Please send rescue to Fictional Harborview, Beacon Road 7. Residents need rescue from a fictional collapsed building.",31,demo_dup_03
+SYN-D3-03,demo-witness-3,2026-10-18T10:14:00Z,"Checking again for Fictional Harborview, Beacon Road 7 - Residents need rescue from a fictional collapsed building.",44,demo_dup_03
+SYN-D3-04,demo-witness-4,2026-10-18T10:21:00Z,"Help request near Fictional Harborview, Beacon Road 7; Residents need rescue from a fictional collapsed building.",57,demo_dup_03
+SYN-D3-05,demo-witness-5,2026-10-18T11:28:00Z,"Can responders reach Fictional Harborview, Beacon Road 7? Residents need rescue from a fictional collapsed building.",70,demo_dup_03
+SYN-D3-06,demo-witness-6,2026-10-18T11:35:00Z,"A neighbor reports Fictional Harborview, Beacon Road 7: Residents need rescue from a fictional collapsed building.",83,demo_dup_03
+SYN-D3-07,demo-witness-1,2026-10-18T11:42:00Z,"Reshare: Fictional Harborview, Beacon Road 7, Residents need rescue from a fictional collapsed building.",96,demo_dup_03
+SYN-D4-01,demo-witness-1,2026-10-18T10:00:00Z,"Urgent help needed at Fictional Stonefield, Orchard Lane 2: A wheelchair user needs evacuation from flood water.",18,demo_dup_04
+SYN-D4-02,demo-witness-2,2026-10-18T10:07:00Z,"Please send rescue to Fictional Stonefield, Orchard Lane 2. A wheelchair user needs evacuation from flood water.",31,demo_dup_04
+SYN-D4-03,demo-witness-3,2026-10-18T10:14:00Z,"Checking again for Fictional Stonefield, Orchard Lane 2 - A wheelchair user needs evacuation from flood water.",44,demo_dup_04
+SYN-D4-04,demo-witness-4,2026-10-18T10:21:00Z,"Help request near Fictional Stonefield, Orchard Lane 2; A wheelchair user needs evacuation from flood water.",57,demo_dup_04
+SYN-D4-05,demo-witness-5,2026-10-18T11:28:00Z,"Can responders reach Fictional Stonefield, Orchard Lane 2? A wheelchair user needs evacuation from flood water.",70,demo_dup_04
+SYN-S01,quiet-witness-01,2026-10-18T12:03:00Z,"Please help at Fictional Brookside, Elm Court 3. A newborn and two adults are trapped under rubble; urgent rescue needed.",3,demo_shadow_01
+SYN-S02,quiet-witness-02,2026-10-18T12:06:00Z,"Please help at Fictional Northgate, Willow Street 9. An elderly person needs oxygen after the fictional apartment collapse.",6,demo_shadow_02
+SYN-S03,quiet-witness-03,2026-10-18T12:09:00Z,"Please help at Fictional Southbank, River Walk 6. A person with diabetes is out of insulin and cannot leave the flooded building.",0,demo_shadow_03
+SYN-S04,quiet-witness-04,2026-10-18T12:12:00Z,"Please help at Fictional Meadow Park, Cedar Row 11. Wheelchair user stranded upstairs as flood water rises; please rescue.",3,demo_shadow_04
+SYN-S05,quiet-witness-05,2026-10-18T12:15:00Z,"Please help at Fictional Eastfield, Juniper Road 5. Child and parent are trapped in a damaged fictional building.",6,demo_shadow_05
+SYN-S06,quiet-witness-06,2026-10-18T12:18:00Z,"Please help at Fictional Westhaven, Tulip Lane 14. An injured older adult is alone and needs urgent medical help.",0,demo_shadow_06
+SYN-S07,quiet-witness-07,2026-10-18T12:21:00Z,"Please help at Fictional Highplain, Aspen Court 2. A resident with oxygen support is stranded after the fictional storm.",3,demo_shadow_07
+SYN-S08,quiet-witness-08,2026-10-18T12:24:00Z,"Please help at Fictional Fairview, Birch Street 8. Baby trapped in a collapsed fictional home; send search and rescue.",6,demo_shadow_08
+SYN-S09,quiet-witness-09,2026-10-18T12:27:00Z,"Please help at Fictional Lakeside, Poppy Avenue 21. A person with limited mobility needs help escaping rising water.",0,demo_shadow_09
+SYN-S10,quiet-witness-10,2026-10-18T12:30:00Z,"Please help at Fictional Glenwood, Iris Road 10. An older adult is injured and trapped inside the damaged house.",3,demo_shadow_10
+SYN-S11,quiet-witness-11,2026-10-18T12:33:00Z,"Please help at Fictional Redcliff, Clover Lane 1. Urgent rescue needed for a child under debris at this fictional address.",6,demo_shadow_11
+SYN-S12,quiet-witness-12,2026-10-18T12:36:00Z,"Please help at Fictional Springvale, Robin Street 12. Resident with a chronic condition needs urgent medical help.",0,demo_shadow_12
+SYN-I01,unverified-demo-01,2026-10-18T13:04:00Z,"Help, people are trapped in the building after the fictional quake.",1,demo_incomplete_01
+SYN-I02,unverified-demo-02,2026-10-18T13:08:00Z,"Need insulin urgently, cannot get out.",2,demo_incomplete_02
+SYN-I03,unverified-demo-03,2026-10-18T13:12:00Z,Flood water is rising and a child is alone upstairs.,3,demo_incomplete_03
+SYN-I04,unverified-demo-04,2026-10-18T13:16:00Z,"Someone is injured and needs an ambulance, location unclear.",0,demo_incomplete_04
+SYN-I05,unverified-demo-05,2026-10-18T13:20:00Z,"We need drinking water and medical supplies, please respond.",1,demo_incomplete_05
+SYN-I06,unverified-demo-06,2026-10-18T13:24:00Z,A collapsed structure has people inside; exact street unknown.,2,demo_incomplete_06
+SYN-I07,unverified-demo-07,2026-10-18T13:28:00Z,Elderly neighbor needs oxygen but we do not know the building number.,3,demo_incomplete_07
+SYN-I08,unverified-demo-08,2026-10-18T13:32:00Z,Please rescue a wheelchair user stranded by flood water.,0,demo_incomplete_08
+SYN-I09,unverified-demo-09,2026-10-18T13:36:00Z,There are people missing near the damaged buildings; area not specified.,1,demo_incomplete_09
+SYN-N01,community-demo-01,2026-10-18T14:05:00Z,Thinking of everyone affected. Sending thoughts and prayers.,28,demo_noise_01
+SYN-N02,community-demo-02,2026-10-18T14:10:00Z,Breaking news: the fictional storm is being discussed on television.,36,demo_noise_02
+SYN-N03,community-demo-03,2026-10-18T14:15:00Z,Beautiful sunset over the bay tonight.,44,demo_noise_03
+SYN-N04,community-demo-04,2026-10-18T14:20:00Z,Please watch live for the next weather update.,52,demo_noise_04
+SYN-N05,community-demo-05,2026-10-18T14:25:00Z,Thank you to every volunteer helping the community.,60,demo_noise_05
+SYN-N06,community-demo-06,2026-10-18T14:30:00Z,Prayers for all families in the region.,68,demo_noise_06
+SYN-N07,community-demo-07,2026-10-18T14:35:00Z,"The old bridge was built many years ago, according to local history.",76,demo_noise_07
+SYN-N08,community-demo-08,2026-10-18T14:40:00Z,News update: officials are holding a press conference later.,84,demo_noise_08
+SYN-N09,community-demo-09,2026-10-18T14:45:00Z,"I hope the rain stops soon. Stay safe, everyone.",92,demo_noise_09

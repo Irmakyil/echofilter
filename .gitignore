@@ -1,0 +1,70 @@
+# ==========================================
+# EchoFilter AI - Git Ignore Policy
+# ==========================================
+
+# 1. Environment & API Secrets
+.env
+.env.*
+!.env.example
+.streamlit/secrets.toml
+
+# 2. Large & Real Crisis Datasets (Privacy & Storage)
+# Real tweets from earthquake/disaster dumps must NOT be pushed to GitHub
+data/*.csv
+data/*.json
+data/*.parquet
+data/*.xlsx
+data/*.tsv
+
+# Whitelist safe synthetic benchmark (no PII, 10KB) and documentation
+!data/README.md
+!data/DEPREMKIT_LICENSE.txt
+!data/synthetic_incidents.csv
+
+# 3. SQLite Databases & Local Storage
+*.sqlite
+*.sqlite3
+*.db
+crisis_db.sqlite
+crisis_db.sqlite-journal
+
+# 4. Virtual Environments & Dependencies
+.venv/
+venv/
+env/
+ENV/
+.env/
+
+# 5. Python Cache & Build Artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/
+
+# 6. Generated Reports & Dossier Exports
+*.pdf
+EchoFilter_*.html
+EchoFilter_*.csv
+EchoFilter_*.json
+
+# 7. IDE & Editor Artifacts
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.project
+.settings/
+
+# 8. Operating System Artifacts
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
